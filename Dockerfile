@@ -19,9 +19,9 @@ RUN set -x \
 RUN set -x \
     && echo "deb http://repo.aptly.info/ squeeze main" \
      > /etc/apt/sources.list.d/aptly.list \
-    && apt-key adv --keyserver keys.gnupg.net --recv-keys 9C7DE460 \
+    && apt-key adv --keyserver hkp://keys.gnupg.net:80 --keyserver-options http-proxy=$http_proxy --recv-keys 9C7DE460 \
     && apt-get update \
-    && apt-get install --no-install-recommends -y \
+    && apt-get install --no-install-recommends --allow-unauthenticated -y \
     aptly \
     && rm -rf /var/lib/apt/lists/*
 

@@ -3,7 +3,7 @@ set -eo pipefail
 shopt -s nullglob
 
 GPGPATH="$HOME/.gnupg"
-KEYSERVER="pgp.mit.edu"
+KEYSERVER="hkp://pgp.mit.edu:80"
 APTLYPATH="/srv/aptly"
 PUBPATH="${APTLYPATH}/public"
 GPGTYPE="${GPGTYPE:-default}"
@@ -13,7 +13,7 @@ GPGCIPHER="${GPGCIPHER:-SHA256}"
 GPGLENGHT="${GPGLENGHT:-2048}"
 GPGCOMMENT="${GPGCOMMENT:-Key Repository Packages deb}"
 GPGEXPIRE="${GPGEXPIRE:-0}"
-GPGSERVER="${GPGSERVER-keys.gnupg.net}"
+GPGSERVER="hkp://keys.gnupg.net:80"
 
 function checkdir() {
   if [ ! -d "$GPGPATH" ]; then
@@ -63,13 +63,16 @@ EOF
     %echo >>>>>> Done GPG key <<<<<<<<<
 EOF
   fi
+
+  #fix bug in dirmngr (https://bbs.archlinux.org/viewtopic.php?id=220996)
+  echo standard-resolver > ${GPGPATH}/dirmngr.conf
 }
 
 function importkey() {
   echo "====== IMPORT KEYS PUBLIC ======"
-  gpg --keyserver ${SERVERGPG} --recv-keys $1 \
+  gpg --keyserver ${SERVERGPG} --keyserver-options http-proxy=${http_proxy} --recv-keys $1 \
   && gpg --export --armor $1 | apt-key add -
-  gpg --no-default-keyring --keyring trustedkeys.gpg --keyserver ${GPGSERVER} --recv-keys $1
+  gpg --no-default-keyring --keyring trustedkeys.gpg --keyserver ${GPGSERVER} --keyserver-options http-proxy=${http_proxy} --recv-keys $1
   echo "====== FINISH IMPORT PUBLIC KEYS ======"
 }
 
@@ -89,7 +92,7 @@ function gengpg() {
     echo "======= EXPORT GPG PUB KEY ========"
     IDKEY=$(gpg --list-keys --with-colons | awk -F":" '/^pub:/ { print $5 }')
     gpg --armor --output ${PUBPATH}/gpg.pub.key --export $IDKEY
-    gpg --keyserver ${KEYSERVER} --send-keys $IDKEY
+    gpg --keyserver ${KEYSERVER} --keyserver-options http-proxy=${http_proxy} --send-keys $IDKEY
     echo "======== FINISH EXPORT KEY ========"
   else
     echo "======= IMPORT PUB KEY DETECTED ======="
