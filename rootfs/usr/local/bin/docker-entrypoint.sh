@@ -70,7 +70,7 @@ function importkey() {
   gpg --keyserver ${SERVERGPG} --recv-keys $1 \
   && gpg --export --armor $1 | apt-key add -
   gpg --no-default-keyring --keyring trustedkeys.gpg --keyserver ${GPGSERVER} --recv-keys $1
-  echp "====== FINISH IMPORT PUBLIC KEYS ======"
+  echo "====== FINISH IMPORT PUBLIC KEYS ======"
 }
 
 function gengpg() {
